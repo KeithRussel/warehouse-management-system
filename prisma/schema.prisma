@@ -1,0 +1,349 @@
+// Prisma Schema for Cold Storage Warehouse Management System
+// Generated: 2025-11-14
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// USER MANAGEMENT
+// ============================================
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  EMPLOYEE
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  username  String   @unique
+  password  String
+  name      String
+  role      Role     @default(EMPLOYEE)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  createdInboundOrders  InboundOrder[]  @relation("CreatedByUser")
+  createdOutboundOrders OutboundOrder[] @relation("CreatedByUser")
+  stockMovements        StockMovement[] @relation("MovedByUser")
+  temperatureLogs       TemperatureLog[]
+
+  @@map("users")
+}
+
+// ============================================
+// SUPPLIER MANAGEMENT
+// ============================================
+
+model Supplier {
+  id           String   @id @default(cuid())
+  code         String   @unique
+  name         String
+  contactName  String?
+  email        String?
+  phone        String?
+  address      String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  inboundOrders InboundOrder[]
+
+  @@map("suppliers")
+}
+
+// ============================================
+// CUSTOMER MANAGEMENT
+// ============================================
+
+model Customer {
+  id             String   @id @default(cuid())
+  code           String   @unique
+  name           String
+  contactPerson  String?
+  email          String?
+  phone          String?
+  address        String?
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  outboundOrders OutboundOrder[]
+
+  @@map("customers")
+}
+
+// ============================================
+// PRODUCT CATALOG
+// ============================================
+
+enum TemperatureZoneType {
+  FROZEN      // -18°C or below
+  CHILLED     // 0°C to 5°C
+  AMBIENT     // Room temperature
+}
+
+model Product {
+  id                String              @id @default(cuid())
+  sku               String              @unique
+  barcode           String?             @unique
+  name              String
+  description       String?
+  category          String?
+  temperatureZone   TemperatureZoneType
+  shelfLifeDays     Int                 // Number of days before expiry
+  minStockLevel     Int?                @default(0)
+  maxStockLevel     Int?
+  unit              String              @default("pcs") // pcs, kg, box, etc.
+  weightPerUnit     Decimal?            @db.Decimal(10, 2) // Weight per unit in kilos
+  unitsPerBox       Int?                // How many units per box/carton
+  isActive          Boolean             @default(true)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  inventory         Inventory[]
+  inboundOrderItems InboundOrderItem[]
+  outboundOrderItems OutboundOrderItem[]
+
+  @@map("products")
+}
+
+// ============================================
+// STORAGE LOCATION MANAGEMENT
+// ============================================
+
+model StorageLocation {
+  id              String              @id @default(cuid())
+  code            String              @unique // e.g., "A1-R3-S2" (Zone-Rack-Shelf)
+  zone            String              // e.g., "Freezer A", "Chiller B"
+  section         String?             // e.g., "A1", "B2"
+  rack            String?             // e.g., "R1", "R2"
+  shelf           String?             // e.g., "S1", "S2"
+  temperatureZone TemperatureZoneType
+  capacity        Int?                // Max capacity
+  isActive        Boolean             @default(true)
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  // Relations
+  inventory           Inventory[]
+  inboundOrderItems   InboundOrderItem[]
+  stockMovements      StockMovement[]
+  temperatureLogs     TemperatureLog[]
+
+  @@map("storage_locations")
+}
+
+// ============================================
+// INVENTORY
+// ============================================
+
+model Inventory {
+  id              String          @id @default(cuid())
+  productId       String
+  locationId      String
+  batchNumber     String
+  quantity        Int
+  expiryDate      DateTime
+  receivedDate    DateTime
+  temperatureOnReceipt Float?      // Temperature when received
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  // Relations
+  product         Product         @relation(fields: [productId], references: [id])
+  location        StorageLocation @relation(fields: [locationId], references: [id])
+
+  @@unique([productId, locationId, batchNumber])
+  @@index([productId])
+  @@index([expiryDate])
+  @@index([batchNumber])
+  @@map("inventory")
+}
+
+// ============================================
+// INBOUND ORDERS (RECEIVING)
+// ============================================
+
+enum InboundStatus {
+  PENDING
+  RECEIVING
+  COMPLETED
+  CANCELLED
+}
+
+model InboundOrder {
+  id                String        @id @default(cuid())
+  orderNumber       String        @unique
+  supplierId        String
+  status            InboundStatus @default(PENDING)
+  expectedDate      DateTime?
+  receivedDate      DateTime?
+  receivedBy        String?       // Person who received (e.g., RODZ, ZALDY, JOEY)
+  driverName        String?       // Delivery driver name
+  plateNumber       String?       // Vehicle plate number
+  notes             String?
+  createdById       String
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  // Relations
+  supplier          Supplier           @relation(fields: [supplierId], references: [id])
+  createdBy         User               @relation("CreatedByUser", fields: [createdById], references: [id])
+  items             InboundOrderItem[]
+
+  @@map("inbound_orders")
+}
+
+model InboundOrderItem {
+  id                   String          @id @default(cuid())
+  inboundOrderId       String
+  productId            String
+  expectedQuantity     Int
+  receivedQuantity     Int             @default(0)
+  batchNumber          String?
+  expiryDate           DateTime?
+  temperatureOnReceipt Float?
+  locationId           String?
+  unitPrice            Decimal?        @db.Decimal(10, 2) // Purchase price per unit
+  notes                String?
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+
+  // Relations
+  inboundOrder         InboundOrder    @relation(fields: [inboundOrderId], references: [id], onDelete: Cascade)
+  product              Product         @relation(fields: [productId], references: [id])
+  location             StorageLocation? @relation(fields: [locationId], references: [id])
+
+  @@map("inbound_order_items")
+}
+
+// ============================================
+// OUTBOUND ORDERS (PICKING/DISPATCH)
+// ============================================
+
+enum OutboundStatus {
+  PENDING
+  PICKING
+  PACKED
+  DISPATCHED
+  CANCELLED
+}
+
+model OutboundOrder {
+  id                   String         @id @default(cuid())
+  orderNumber          String         @unique
+  drNumber             String?        @unique // Delivery Receipt number (DR-001, DR-018, etc.)
+  customerId           String?
+  deliveryAddress      String?        // Override address for this specific order
+  status               OutboundStatus @default(PENDING)
+  orderDate            DateTime       @default(now())
+  pickDate             DateTime?
+  dispatchDate         DateTime?
+  preparedBy           String?        // Person who prepared the order
+  receivedByCustomer   String?        // Customer signature/name on DR
+  truckTemperature     Float?         // Temperature log of delivery truck
+  notes                String?
+  createdById          String
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+
+  // Relations
+  customer             Customer?           @relation(fields: [customerId], references: [id])
+  createdBy            User                @relation("CreatedByUser", fields: [createdById], references: [id])
+  items                OutboundOrderItem[]
+
+  @@map("outbound_orders")
+}
+
+model OutboundOrderItem {
+  id                String        @id @default(cuid())
+  outboundOrderId   String
+  productId         String
+  requestedQuantity Int
+  pickedQuantity    Int           @default(0)
+  boxQuantity       Int?          // Number of boxes/cartons
+  weightKilos       Decimal?      @db.Decimal(10, 2) // Total weight in kilos
+  unitPrice         Decimal?      @db.Decimal(10, 2) // Selling price per unit
+  totalAmount       Decimal?      @db.Decimal(10, 2) // Calculated: quantity * unitPrice
+  batchNumber       String?
+  expiryDate        DateTime?
+  notes             String?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  // Relations
+  outboundOrder     OutboundOrder @relation(fields: [outboundOrderId], references: [id], onDelete: Cascade)
+  product           Product       @relation(fields: [productId], references: [id])
+
+  @@map("outbound_order_items")
+}
+
+// ============================================
+// STOCK MOVEMENTS
+// ============================================
+
+enum MovementType {
+  RECEIPT       // Receiving goods
+  PICK          // Picking for outbound
+  ADJUSTMENT    // Stock adjustment
+  TRANSFER      // Transfer between locations
+  RETURN        // Return to stock
+  DISPOSAL      // Disposal/waste
+}
+
+model StockMovement {
+  id              String       @id @default(cuid())
+  type            MovementType
+  productSku      String
+  productName     String
+  batchNumber     String?
+  fromLocation    String?
+  toLocationId    String?
+  quantity        Int
+  reason          String?
+  referenceNumber String?      // Reference to order number
+  movedById       String
+  createdAt       DateTime     @default(now())
+
+  // Relations
+  toLocation      StorageLocation? @relation(fields: [toLocationId], references: [id])
+  movedBy         User             @relation("MovedByUser", fields: [movedById], references: [id])
+
+  @@index([productSku])
+  @@index([createdAt])
+  @@map("stock_movements")
+}
+
+// ============================================
+// TEMPERATURE LOGS
+// ============================================
+
+model TemperatureLog {
+  id          String          @id @default(cuid())
+  locationId  String
+  temperature Float
+  notes       String?
+  loggedById  String
+  createdAt   DateTime        @default(now())
+
+  // Relations
+  location    StorageLocation @relation(fields: [locationId], references: [id])
+  loggedBy    User            @relation(fields: [loggedById], references: [id])
+
+  @@index([locationId])
+  @@index([createdAt])
+  @@map("temperature_logs")
+}
