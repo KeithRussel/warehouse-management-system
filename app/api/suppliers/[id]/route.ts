@@ -22,8 +22,10 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const { id } = await params;
+
     const supplier = await db.supplier.findUnique({
-      where: { id: id },
+      where: { id },
       include: {
         inboundOrders: {
           take: 5,
@@ -60,6 +62,8 @@ export async function PATCH(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
+    const { id } = await params;
+
     const body = await request.json();
 
     // Validate request body
@@ -67,7 +71,7 @@ export async function PATCH(
 
     // Check if supplier exists
     const existingSupplier = await db.supplier.findUnique({
-      where: { id: id },
+      where: { id },
     });
 
     if (!existingSupplier) {
@@ -90,7 +94,7 @@ export async function PATCH(
 
     // Update supplier
     const supplier = await db.supplier.update({
-      where: { id: id },
+      where: { id },
       data: {
         code: validatedData.code,
         name: validatedData.name,
@@ -132,9 +136,11 @@ export async function DELETE(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
+    const { id } = await params;
+
     // Check if supplier exists
     const existingSupplier = await db.supplier.findUnique({
-      where: { id: id },
+      where: { id },
       include: {
         inboundOrders: true,
       },
@@ -154,7 +160,7 @@ export async function DELETE(
 
     // Delete supplier
     await db.supplier.delete({
-      where: { id: id },
+      where: { id },
     });
 
     return NextResponse.json({ message: 'Supplier deleted successfully' });

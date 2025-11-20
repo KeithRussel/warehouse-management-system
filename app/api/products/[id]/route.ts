@@ -19,8 +19,10 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const { id } = await params;
+
     const product = await db.product.findUnique({
-      where: { id: id },
+      where: { id },
     });
 
     if (!product) {
@@ -53,12 +55,14 @@ export async function PATCH(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
+    const { id } = await params;
+
     const body = await request.json();
     const validatedData = productSchema.parse(body);
 
     // Check if product exists
     const existingProduct = await db.product.findUnique({
-      where: { id: id },
+      where: { id },
     });
 
     if (!existingProduct) {
@@ -95,7 +99,7 @@ export async function PATCH(
 
     // Update product
     const updatedProduct = await db.product.update({
-      where: { id: id },
+      where: { id },
       data: {
         ...validatedData,
         barcode: validatedData.barcode || null,
@@ -140,9 +144,11 @@ export async function DELETE(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
+    const { id } = await params;
+
     // Check if product exists
     const existingProduct = await db.product.findUnique({
-      where: { id: id },
+      where: { id },
     });
 
     if (!existingProduct) {
@@ -163,7 +169,7 @@ export async function DELETE(
 
     // Delete product
     await db.product.delete({
-      where: { id: id },
+      where: { id },
     });
 
     return NextResponse.json({ message: 'Product deleted successfully' });

@@ -9,6 +9,8 @@ import { ProductForm } from '@/components/forms/product-form';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: 'Add Product | Cold Storage WMS',
   description: 'Add a new product to the catalog',

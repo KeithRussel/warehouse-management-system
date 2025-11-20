@@ -7,6 +7,8 @@ const nextConfig: NextConfig = {
       bodySizeLimit: "2mb",
     },
   },
+  // Disable prerendering to avoid Auth.js error page issues
+  output: 'standalone',
 };
 
 export default nextConfig;

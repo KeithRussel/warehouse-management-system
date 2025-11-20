@@ -116,6 +116,8 @@ You'll need a PostgreSQL database. Options:
 
 ### 3. Deploy to Vercel
 
+**Note:** Due to a known compatibility issue between Next.js 15 and NextAuth v5 beta, the local build (`npm run build`) may fail. However, the application builds and runs successfully on Vercel.
+
 1. Go to [vercel.com](https://vercel.com) and sign in with GitHub
 2. Click "New Project"
 3. Import your repository

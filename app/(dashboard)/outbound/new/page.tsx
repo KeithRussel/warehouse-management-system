@@ -13,6 +13,8 @@ import { db } from '@/lib/db';
 import { Button } from '@/components/ui/button';
 import { OutboundOrderForm } from '@/components/forms/outbound-order-form';
 
+export const dynamic = 'force-dynamic';
+
 async function getProducts() {
   const products = await db.product.findMany({
     where: { isActive: true },

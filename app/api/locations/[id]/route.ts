@@ -22,8 +22,10 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const { id } = await params;
+
     const location = await db.storageLocation.findUnique({
-      where: { id: id },
+      where: { id },
       include: {
         inventory: {
           include: {
@@ -61,6 +63,8 @@ export async function PATCH(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
+    const { id } = await params;
+
     const body = await request.json();
 
     // Validate request body
@@ -68,7 +72,7 @@ export async function PATCH(
 
     // Check if location exists
     const existingLocation = await db.storageLocation.findUnique({
-      where: { id: id },
+      where: { id },
     });
 
     if (!existingLocation) {
@@ -91,7 +95,7 @@ export async function PATCH(
 
     // Update location
     const location = await db.storageLocation.update({
-      where: { id: id },
+      where: { id },
       data: {
         code: validatedData.code,
         zone: validatedData.zone,
@@ -134,9 +138,11 @@ export async function DELETE(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
+    const { id } = await params;
+
     // Check if location exists
     const existingLocation = await db.storageLocation.findUnique({
-      where: { id: id },
+      where: { id },
       include: {
         inventory: true,
       },
@@ -156,7 +162,7 @@ export async function DELETE(
 
     // Delete location
     await db.storageLocation.delete({
-      where: { id: id },
+      where: { id },
     });
 
     return NextResponse.json({ message: 'Location deleted successfully' });

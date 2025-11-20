@@ -64,7 +64,7 @@ interface OrderItem {
   requestedQuantity: number;
   pickedQuantity: number | null;
   boxQuantity: number | null;
-  weightKilos: number | null;
+  weightKilos: any; // Prisma Decimal
   batchNumber: string | null;
   expiryDate: Date | null;
   product: Product;
@@ -95,7 +95,7 @@ export function DispatchOrderDialog({ order, children }: DispatchOrderDialogProp
         itemId: item.id,
         pickedQuantity: item.requestedQuantity,
         boxQuantity: item.boxQuantity ?? null,
-        weightKilos: item.weightKilos ?? null,
+        weightKilos: item.weightKilos ? Number(item.weightKilos) : null,
         batchNumber: item.product.inventory[0]?.batchNumber ?? null,
         expiryDate: item.product.inventory[0]?.expiryDate ?? null,
       })),

@@ -84,25 +84,40 @@ export async function POST(
 
         // If quantity decreased (returned items), add back to inventory
         if (quantityDifference > 0) {
-          // Add back to inventory with same batch
-          await tx.inventory.upsert({
+          // Find matching inventory record to add back to
+          const inventoryRecord = await tx.inventory.findFirst({
             where: {
-              productId_batchNumber_expiryDate: {
-                productId: currentItem.productId,
-                batchNumber: currentItem.batchNumber || '',
-                expiryDate: currentItem.expiryDate || new Date(),
-              },
-            },
-            update: {
-              quantity: { increment: quantityDifference },
-            },
-            create: {
               productId: currentItem.productId,
               batchNumber: currentItem.batchNumber || '',
-              expiryDate: currentItem.expiryDate || new Date(),
-              quantity: quantityDifference,
             },
           });
+
+          if (inventoryRecord) {
+            // Update existing inventory
+            await tx.inventory.update({
+              where: { id: inventoryRecord.id },
+              data: { quantity: { increment: quantityDifference } },
+            });
+          } else {
+            // If no matching inventory found, we need a location
+            // Get the first available location for this product
+            const firstLocation = await tx.storageLocation.findFirst({
+              where: { isActive: true },
+            });
+
+            if (firstLocation) {
+              await tx.inventory.create({
+                data: {
+                  productId: currentItem.productId,
+                  locationId: firstLocation.id,
+                  batchNumber: currentItem.batchNumber || '',
+                  expiryDate: currentItem.expiryDate || new Date(),
+                  quantity: quantityDifference,
+                  receivedDate: new Date(),
+                },
+              });
+            }
+          }
 
           // Create stock movement record for return
           await tx.stockMovement.create({

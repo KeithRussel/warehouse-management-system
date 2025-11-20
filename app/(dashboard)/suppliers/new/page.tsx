@@ -9,6 +9,8 @@ import { SupplierForm } from '@/components/forms/supplier-form';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: 'Add Supplier | Cold Storage WMS',
   description: 'Add a new supplier to the system',

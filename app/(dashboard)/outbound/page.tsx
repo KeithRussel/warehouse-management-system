@@ -35,6 +35,19 @@ async function getOutboundOrders() {
   });
 }
 
+// Serialize orders for client component (convert Decimal to number)
+function serializeOrders(orders: Awaited<ReturnType<typeof getOutboundOrders>>) {
+  return orders.map(order => ({
+    ...order,
+    items: order.items.map(item => ({
+      ...item,
+      weightKilos: item.weightKilos ? Number(item.weightKilos) : null,
+      unitPrice: item.unitPrice ? Number(item.unitPrice) : null,
+      totalAmount: item.totalAmount ? Number(item.totalAmount) : null,
+    })),
+  }));
+}
+
 async function OutboundOrdersContent() {
   const session = await auth();
 
@@ -42,7 +55,8 @@ async function OutboundOrdersContent() {
     redirect('/login');
   }
 
-  const orders = await getOutboundOrders();
+  const ordersRaw = await getOutboundOrders();
+  const orders = serializeOrders(ordersRaw);
 
   return (
     <OutboundOrdersTable

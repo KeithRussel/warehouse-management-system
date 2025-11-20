@@ -22,8 +22,10 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const { id } = await params;
+
     const inboundOrder = await db.inboundOrder.findUnique({
-      where: { id: id },
+      where: { id },
       include: {
         supplier: true,
         items: {
@@ -68,6 +70,8 @@ export async function PATCH(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
+    const { id } = await params;
+
     const body = await request.json();
 
     // Validate request body
@@ -75,7 +79,7 @@ export async function PATCH(
 
     // Check if inbound order exists
     const existingOrder = await db.inboundOrder.findUnique({
-      where: { id: id },
+      where: { id },
     });
 
     if (!existingOrder) {
@@ -92,7 +96,7 @@ export async function PATCH(
 
     // Update inbound order
     const inboundOrder = await db.inboundOrder.update({
-      where: { id: id },
+      where: { id },
       data: {
         supplierId: validatedData.supplierId,
         status: validatedData.status,
@@ -144,9 +148,11 @@ export async function DELETE(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
+    const { id } = await params;
+
     // Check if inbound order exists
     const existingOrder = await db.inboundOrder.findUnique({
-      where: { id: id },
+      where: { id },
     });
 
     if (!existingOrder) {
@@ -163,7 +169,7 @@ export async function DELETE(
 
     // Delete inbound order (items will be cascade deleted)
     await db.inboundOrder.delete({
-      where: { id: id },
+      where: { id },
     });
 
     return NextResponse.json({ message: 'Inbound order deleted successfully' });

@@ -10,6 +10,8 @@ import { InboundOrderForm } from '@/components/forms/inbound-order-form';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: 'New Inbound Order | Cold Storage WMS',
   description: 'Create a new inbound receiving order',

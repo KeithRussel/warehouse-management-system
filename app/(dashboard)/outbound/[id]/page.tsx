@@ -67,14 +67,15 @@ async function getOutboundOrder(id: string) {
 function serializeOrderForPrint(order: NonNullable<Awaited<ReturnType<typeof getOutboundOrder>>>) {
   return {
     ...order,
+    customer: order.customer!,
     items: order.items.map(item => ({
       ...item,
       weightKilos: Number(item.weightKilos),
       unitPrice: Number(item.unitPrice),
       totalAmount: Number(item.totalAmount),
       product: {
-        ...item.product,
-        inventory: undefined, // Remove inventory data for printing
+        sku: item.product.sku,
+        name: item.product.name,
       },
     })),
   };
@@ -331,19 +332,19 @@ export default async function OutboundOrderDetailPage({
                   </TableCell>
                   <TableCell className="text-right">
                     {item.weightKilos
-                      ? item.weightKilos.toFixed(2)
+                      ? Number(item.weightKilos).toFixed(2)
                       : '-'}
                   </TableCell>
                   <TableCell className="text-right">
                     {item.unitPrice
-                      ? `₱${item.unitPrice.toLocaleString('en-US', {
+                      ? `₱${Number(item.unitPrice).toLocaleString('en-US', {
                           minimumFractionDigits: 2,
                         })}`
                       : '-'}
                   </TableCell>
                   <TableCell className="text-right">
                     {item.totalAmount
-                      ? `₱${item.totalAmount.toLocaleString('en-US', {
+                      ? `₱${Number(item.totalAmount).toLocaleString('en-US', {
                           minimumFractionDigits: 2,
                         })}`
                       : '-'}

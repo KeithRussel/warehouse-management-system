@@ -9,6 +9,8 @@ import { CustomerForm } from '@/components/forms/customer-form';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: 'Add Customer | Cold Storage WMS',
   description: 'Add a new customer to the system',
