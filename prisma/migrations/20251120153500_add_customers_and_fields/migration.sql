@@ -17,5 +17,9 @@ CREATE TABLE "customers" (
 -- CreateIndex
 CREATE UNIQUE INDEX "customers_code_key" ON "customers"("code");
 
+-- AlterTable: Add customerId and deliveryAddress columns to outbound_orders
+ALTER TABLE "outbound_orders" ADD COLUMN "customerId" TEXT;
+ALTER TABLE "outbound_orders" ADD COLUMN "deliveryAddress" TEXT;
+
 -- AddForeignKey
 ALTER TABLE "outbound_orders" ADD CONSTRAINT "outbound_orders_customerId_fkey" FOREIGN KEY ("customerId") REFERENCES "customers"("id") ON DELETE SET NULL ON UPDATE CASCADE;
