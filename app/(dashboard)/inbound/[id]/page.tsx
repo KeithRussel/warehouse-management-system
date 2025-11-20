@@ -38,6 +38,7 @@ async function getInboundOrder(id: string) {
       items: {
         include: {
           product: true,
+          location: true,
         },
       },
       createdBy: {
@@ -104,8 +105,8 @@ export default async function InboundOrderDetailPage({
     );
     const totalAmount = order.items.reduce(
       (sum, item) => {
-        const price = item.unitPrice || 0;
-        const qty = item.receivedQuantity || item.expectedQuantity;
+        const price = Number(item.unitPrice) || 0;
+        const qty = item.receivedQuantity || item.expectedQuantity || 0;
         return sum + (price * qty);
       },
       0
@@ -166,10 +167,10 @@ export default async function InboundOrderDetailPage({
                 Code: {order.supplier.code}
               </p>
             </div>
-            {order.supplier.contactPerson && (
+            {order.supplier.contactName && (
               <div>
                 <p className="text-sm text-muted-foreground">Contact Person</p>
-                <p className="font-medium">{order.supplier.contactPerson}</p>
+                <p className="font-medium">{order.supplier.contactName}</p>
               </div>
             )}
             {order.supplier.phone && (
@@ -274,7 +275,7 @@ export default async function InboundOrderDetailPage({
                   </TableCell>
                   <TableCell className="text-right">
                     {item.unitPrice
-                      ? `₱${item.unitPrice.toLocaleString('en-US', {
+                      ? `₱${Number(item.unitPrice).toLocaleString('en-US', {
                           minimumFractionDigits: 2,
                         })}`
                       : '-'}
@@ -282,8 +283,8 @@ export default async function InboundOrderDetailPage({
                   <TableCell className="text-right">
                     {item.unitPrice
                       ? `₱${(
-                          item.unitPrice *
-                          (item.receivedQuantity || item.expectedQuantity)
+                          Number(item.unitPrice) *
+                          (item.receivedQuantity || item.expectedQuantity || 0)
                         ).toLocaleString('en-US', {
                           minimumFractionDigits: 2,
                         })}`

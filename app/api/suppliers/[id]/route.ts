@@ -13,7 +13,7 @@ import { z } from 'zod';
 // GET /api/suppliers/[id] - Get single supplier
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -23,7 +23,7 @@ export async function GET(
     }
 
     const supplier = await db.supplier.findUnique({
-      where: { id: params.id },
+      where: { id: id },
       include: {
         inboundOrders: {
           take: 5,
@@ -46,7 +46,7 @@ export async function GET(
 // PATCH /api/suppliers/[id] - Update supplier
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -67,7 +67,7 @@ export async function PATCH(
 
     // Check if supplier exists
     const existingSupplier = await db.supplier.findUnique({
-      where: { id: params.id },
+      where: { id: id },
     });
 
     if (!existingSupplier) {
@@ -90,7 +90,7 @@ export async function PATCH(
 
     // Update supplier
     const supplier = await db.supplier.update({
-      where: { id: params.id },
+      where: { id: id },
       data: {
         code: validatedData.code,
         name: validatedData.name,
@@ -118,7 +118,7 @@ export async function PATCH(
 // DELETE /api/suppliers/[id] - Delete supplier
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -134,7 +134,7 @@ export async function DELETE(
 
     // Check if supplier exists
     const existingSupplier = await db.supplier.findUnique({
-      where: { id: params.id },
+      where: { id: id },
       include: {
         inboundOrders: true,
       },
@@ -154,7 +154,7 @@ export async function DELETE(
 
     // Delete supplier
     await db.supplier.delete({
-      where: { id: params.id },
+      where: { id: id },
     });
 
     return NextResponse.json({ message: 'Supplier deleted successfully' });

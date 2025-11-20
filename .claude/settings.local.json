@@ -21,7 +21,11 @@
       "Bash(git init:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(for file in inbound/[id]/route.ts locations/[id]/route.ts products/[id]/route.ts suppliers/[id]/route.ts)",
+      "Bash(do echo \"Fixing $file...\")",
+      "Bash(done)",
+      "Bash(node:*)"
     ],
     "deny": [],
     "ask": []

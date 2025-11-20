@@ -90,7 +90,7 @@ interface Order {
 interface Location {
   id: string;
   code: string;
-  name: string;
+  zone: string;
 }
 
 interface ReceiveOrderDialogProps {
@@ -327,7 +327,7 @@ export function ReceiveOrderDialog({ order, locations, children }: ReceiveOrderD
                               <SelectContent>
                                 {locations.map((location) => (
                                   <SelectItem key={location.id} value={location.id}>
-                                    {location.code} - {location.name}
+                                    {location.code} - {location.zone}
                                   </SelectItem>
                                 ))}
                               </SelectContent>

@@ -11,7 +11,7 @@ import { productSchema } from '@/lib/validations/product';
 // GET /api/products/[id] - Get a single product
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -20,7 +20,7 @@ export async function GET(
     }
 
     const product = await db.product.findUnique({
-      where: { id: params.id },
+      where: { id: id },
     });
 
     if (!product) {
@@ -40,7 +40,7 @@ export async function GET(
 // PATCH /api/products/[id] - Update a product
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -58,7 +58,7 @@ export async function PATCH(
 
     // Check if product exists
     const existingProduct = await db.product.findUnique({
-      where: { id: params.id },
+      where: { id: id },
     });
 
     if (!existingProduct) {
@@ -95,7 +95,7 @@ export async function PATCH(
 
     // Update product
     const updatedProduct = await db.product.update({
-      where: { id: params.id },
+      where: { id: id },
       data: {
         ...validatedData,
         barcode: validatedData.barcode || null,
@@ -127,7 +127,7 @@ export async function PATCH(
 // DELETE /api/products/[id] - Delete a product
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -142,7 +142,7 @@ export async function DELETE(
 
     // Check if product exists
     const existingProduct = await db.product.findUnique({
-      where: { id: params.id },
+      where: { id: id },
     });
 
     if (!existingProduct) {
@@ -151,7 +151,7 @@ export async function DELETE(
 
     // Check if product has inventory (prevent deletion if it does)
     const inventoryCount = await db.inventory.count({
-      where: { productId: params.id },
+      where: { productId: id },
     });
 
     if (inventoryCount > 0) {
@@ -163,7 +163,7 @@ export async function DELETE(
 
     // Delete product
     await db.product.delete({
-      where: { id: params.id },
+      where: { id: id },
     });
 
     return NextResponse.json({ message: 'Product deleted successfully' });

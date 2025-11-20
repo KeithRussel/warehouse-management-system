@@ -13,7 +13,7 @@ import { z } from 'zod';
 // GET /api/locations/[id] - Get single storage location
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -23,7 +23,7 @@ export async function GET(
     }
 
     const location = await db.storageLocation.findUnique({
-      where: { id: params.id },
+      where: { id: id },
       include: {
         inventory: {
           include: {
@@ -47,7 +47,7 @@ export async function GET(
 // PATCH /api/locations/[id] - Update storage location
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -68,7 +68,7 @@ export async function PATCH(
 
     // Check if location exists
     const existingLocation = await db.storageLocation.findUnique({
-      where: { id: params.id },
+      where: { id: id },
     });
 
     if (!existingLocation) {
@@ -91,7 +91,7 @@ export async function PATCH(
 
     // Update location
     const location = await db.storageLocation.update({
-      where: { id: params.id },
+      where: { id: id },
       data: {
         code: validatedData.code,
         zone: validatedData.zone,
@@ -120,7 +120,7 @@ export async function PATCH(
 // DELETE /api/locations/[id] - Delete storage location
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -136,7 +136,7 @@ export async function DELETE(
 
     // Check if location exists
     const existingLocation = await db.storageLocation.findUnique({
-      where: { id: params.id },
+      where: { id: id },
       include: {
         inventory: true,
       },
@@ -156,7 +156,7 @@ export async function DELETE(
 
     // Delete location
     await db.storageLocation.delete({
-      where: { id: params.id },
+      where: { id: id },
     });
 
     return NextResponse.json({ message: 'Location deleted successfully' });

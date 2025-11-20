@@ -13,7 +13,7 @@ import { z } from 'zod';
 // GET /api/inbound/[id] - Get single inbound order
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -23,7 +23,7 @@ export async function GET(
     }
 
     const inboundOrder = await db.inboundOrder.findUnique({
-      where: { id: params.id },
+      where: { id: id },
       include: {
         supplier: true,
         items: {
@@ -54,7 +54,7 @@ export async function GET(
 // PATCH /api/inbound/[id] - Update inbound order
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -75,7 +75,7 @@ export async function PATCH(
 
     // Check if inbound order exists
     const existingOrder = await db.inboundOrder.findUnique({
-      where: { id: params.id },
+      where: { id: id },
     });
 
     if (!existingOrder) {
@@ -92,7 +92,7 @@ export async function PATCH(
 
     // Update inbound order
     const inboundOrder = await db.inboundOrder.update({
-      where: { id: params.id },
+      where: { id: id },
       data: {
         supplierId: validatedData.supplierId,
         status: validatedData.status,
@@ -130,7 +130,7 @@ export async function PATCH(
 // DELETE /api/inbound/[id] - Delete inbound order
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -146,7 +146,7 @@ export async function DELETE(
 
     // Check if inbound order exists
     const existingOrder = await db.inboundOrder.findUnique({
-      where: { id: params.id },
+      where: { id: id },
     });
 
     if (!existingOrder) {
@@ -163,7 +163,7 @@ export async function DELETE(
 
     // Delete inbound order (items will be cascade deleted)
     await db.inboundOrder.delete({
-      where: { id: params.id },
+      where: { id: id },
     });
 
     return NextResponse.json({ message: 'Inbound order deleted successfully' });
