@@ -27,7 +27,8 @@ export async function POST(request: Request) {
     // Create super admin
     const superAdmin = await db.user.create({
       data: {
-        email: 'admin@warehouse.com',
+        email: 'admin@wms.com',
+        username: 'admin',
         password: hashedPassword,
         name: 'Super Admin',
         role: 'SUPER_ADMIN',
