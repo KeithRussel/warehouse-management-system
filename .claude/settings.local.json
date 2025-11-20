@@ -25,7 +25,8 @@
       "Bash(for file in inbound/[id]/route.ts locations/[id]/route.ts products/[id]/route.ts suppliers/[id]/route.ts)",
       "Bash(do echo \"Fixing $file...\")",
       "Bash(done)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(dir:*)"
     ],
     "deny": [],
     "ask": []
