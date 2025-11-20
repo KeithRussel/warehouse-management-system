@@ -169,7 +169,7 @@ export function CustomerForm({ initialData }: CustomerFormProps) {
                     />
                   </FormControl>
                   <FormDescription>
-                    Customer's email address for communication
+                    Customer&apos;s email address for communication
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

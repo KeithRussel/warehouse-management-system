@@ -16,9 +16,9 @@ export const metadata = {
 };
 
 interface EditSupplierPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export default async function EditSupplierPage({ params }: EditSupplierPageProps) {
@@ -32,9 +32,12 @@ export default async function EditSupplierPage({ params }: EditSupplierPageProps
     redirect('/dashboard');
   }
 
+  // Await params (Next.js 15 requirement)
+  const { id } = await params;
+
   // Fetch supplier
   const supplier = await db.supplier.findUnique({
-    where: { id: params.id },
+    where: { id },
   });
 
   if (!supplier) {

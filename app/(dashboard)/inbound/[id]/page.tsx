@@ -60,7 +60,7 @@ async function getLocations() {
 export default async function InboundOrderDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
   const session = await auth();
 
@@ -68,8 +68,11 @@ export default async function InboundOrderDetailPage({
     redirect('/login');
   }
 
+  // Await params (Next.js 15 requirement)
+  const { id } = await params;
+
   const [order, locations] = await Promise.all([
-    getInboundOrder(params.id),
+    getInboundOrder(id),
     getLocations(),
   ]);
 

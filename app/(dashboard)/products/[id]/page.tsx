@@ -16,9 +16,9 @@ export const metadata = {
 };
 
 interface EditProductPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export default async function EditProductPage({ params }: EditProductPageProps) {
@@ -32,9 +32,12 @@ export default async function EditProductPage({ params }: EditProductPageProps) 
     redirect('/dashboard');
   }
 
+  // Await params (Next.js 15 requirement)
+  const { id } = await params;
+
   // Fetch product
   const product = await db.product.findUnique({
-    where: { id: params.id },
+    where: { id },
   });
 
   if (!product) {

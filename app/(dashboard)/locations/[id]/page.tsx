@@ -16,9 +16,9 @@ export const metadata = {
 };
 
 interface EditLocationPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export default async function EditLocationPage({ params }: EditLocationPageProps) {
@@ -32,9 +32,12 @@ export default async function EditLocationPage({ params }: EditLocationPageProps
     redirect('/dashboard');
   }
 
+  // Await params (Next.js 15 requirement)
+  const { id } = await params;
+
   // Fetch location
   const location = await db.storageLocation.findUnique({
-    where: { id: params.id },
+    where: { id },
   });
 
   if (!location) {

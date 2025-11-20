@@ -16,9 +16,9 @@ export const metadata = {
 };
 
 interface EditCustomerPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export default async function EditCustomerPage({ params }: EditCustomerPageProps) {
@@ -32,9 +32,12 @@ export default async function EditCustomerPage({ params }: EditCustomerPageProps
     redirect('/dashboard');
   }
 
+  // Await params (Next.js 15 requirement)
+  const { id } = await params;
+
   // Fetch customer
   const customer = await db.customer.findUnique({
-    where: { id: params.id },
+    where: { id },
   });
 
   if (!customer) {

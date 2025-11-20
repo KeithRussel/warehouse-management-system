@@ -169,7 +169,7 @@ export function SupplierForm({ initialData }: SupplierFormProps) {
                     />
                   </FormControl>
                   <FormDescription>
-                    Supplier's email address for communication
+                    Supplier&apos;s email address for communication
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
