@@ -7,7 +7,7 @@
 import { notFound, redirect } from 'next/navigation';
 import Link from 'next/link';
 import { format } from 'date-fns';
-import { ChevronLeft, Package, Truck, Edit } from 'lucide-react';
+import { ChevronLeft, Package, Truck, XCircle } from 'lucide-react';
 
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
@@ -31,6 +31,7 @@ import {
 import { DispatchOrderDialog } from '@/components/dialogs/dispatch-order-dialog';
 import { PrintDRButton } from '@/components/buttons/print-dr-button';
 import { AmendDispatchDialog } from '@/components/dialogs/amend-dispatch-dialog';
+import { CancelOrderDialog } from '@/components/dialogs/cancel-order-dialog';
 
 async function getOutboundOrder(id: string) {
   return await db.outboundOrder.findUnique({
@@ -175,9 +176,8 @@ export default async function OutboundOrderDetailPage({
     order.status !== 'DISPATCHED' &&
     order.status !== 'CANCELLED' &&
     (session.user.role === 'SUPER_ADMIN' || session.user.role === 'ADMIN');
-
-  const canEdit =
-    order.status !== 'DISPATCHED' &&
+  const canCancel =
+    order.status === 'PENDING' &&
     (session.user.role === 'SUPER_ADMIN' || session.user.role === 'ADMIN');
 
   return (
@@ -203,13 +203,17 @@ export default async function OutboundOrderDetailPage({
         </div>
 
         <div className="flex gap-2">
-          {canEdit && (
-            <Button variant="outline" asChild>
-              <Link href={`/outbound/${order.id}/edit`}>
-                <Edit className="mr-2 h-4 w-4" />
-                Edit
-              </Link>
-            </Button>
+          {canCancel && (
+            <CancelOrderDialog
+              orderId={order.id}
+              orderNumber={order.orderNumber}
+              orderType="outbound"
+            >
+              <Button variant="outline">
+                <XCircle className="mr-2 h-4 w-4" />
+                Cancel Order
+              </Button>
+            </CancelOrderDialog>
           )}
           {canDispatch && (
             <DispatchOrderDialog order={serializeOrderForDispatch(order)}>

@@ -7,7 +7,7 @@
 import { notFound, redirect } from 'next/navigation';
 import Link from 'next/link';
 import { format } from 'date-fns';
-import { ChevronLeft, Package, Check, FileText } from 'lucide-react';
+import { ChevronLeft, Package, Check, FileText, XCircle } from 'lucide-react';
 
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
@@ -29,6 +29,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { ReceiveOrderDialog } from '@/components/dialogs/receive-order-dialog';
+import { CancelOrderDialog } from '@/components/dialogs/cancel-order-dialog';
 
 async function getInboundOrder(id: string) {
   return await db.inboundOrder.findUnique({
@@ -117,6 +118,9 @@ export default async function InboundOrderDetailPage({
 
   const totals = calculateTotals();
   const canReceive = order.status === 'PENDING' || order.status === 'RECEIVING';
+  const canCancel =
+    order.status === 'PENDING' &&
+    (session.user.role === 'SUPER_ADMIN' || session.user.role === 'ADMIN');
 
   return (
     <div className="flex flex-col gap-6">
@@ -141,6 +145,18 @@ export default async function InboundOrderDetailPage({
         </div>
 
         <div className="flex gap-2">
+          {canCancel && (
+            <CancelOrderDialog
+              orderId={order.id}
+              orderNumber={order.orderNumber}
+              orderType="inbound"
+            >
+              <Button variant="outline">
+                <XCircle className="mr-2 h-4 w-4" />
+                Cancel Order
+              </Button>
+            </CancelOrderDialog>
+          )}
           {canReceive && (
             <ReceiveOrderDialog order={order} locations={locations}>
               <Button>
