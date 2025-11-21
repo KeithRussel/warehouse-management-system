@@ -50,6 +50,8 @@ interface Product {
   id: string;
   sku: string;
   name: string;
+  weightPerUnit: any | null; // Prisma Decimal
+  unitsPerBox: number | null;
   inventory: {
     id: string;
     batchNumber: string | null;
@@ -106,6 +108,50 @@ export function DispatchOrderDialog({ order, children }: DispatchOrderDialogProp
     control: form.control,
     name: 'items',
   });
+
+  // Helper to calculate validation warnings
+  const getValidationWarnings = (itemIndex: number) => {
+    const warnings: string[] = [];
+    const orderItem = order.items[itemIndex];
+    const formItem = form.watch(`items.${itemIndex}`);
+
+    if (!orderItem?.product || !formItem) return warnings;
+
+    const product = orderItem.product;
+    const pickedQty = formItem.pickedQuantity || 0;
+    const boxQty = formItem.boxQuantity;
+    const weightKg = formItem.weightKilos;
+
+    // Warning 1: Box quantity validation
+    if (boxQty && product.unitsPerBox && pickedQty > 0) {
+      const expectedBoxes = Math.ceil(pickedQty / product.unitsPerBox);
+      if (boxQty !== expectedBoxes) {
+        const diff = Math.abs(boxQty - expectedBoxes);
+        warnings.push(
+          `Box count variance: Expected ${expectedBoxes} boxes (${product.unitsPerBox} units/box), got ${boxQty} boxes. Difference: ${diff} box(es).`
+        );
+      }
+    }
+
+    // Warning 2: Weight variance check
+    if (weightKg && product.weightPerUnit && pickedQty > 0) {
+      const weightPerUnit = typeof product.weightPerUnit === 'number'
+        ? product.weightPerUnit
+        : Number(product.weightPerUnit);
+      const expectedWeight = pickedQty * weightPerUnit;
+      const variance = Math.abs(weightKg - expectedWeight);
+      const variancePercent = (variance / expectedWeight) * 100;
+
+      // Show warning if variance is more than 5%
+      if (variancePercent > 5) {
+        warnings.push(
+          `Weight variance: Expected ${expectedWeight.toFixed(2)} kg (${pickedQty} × ${weightPerUnit.toFixed(2)} kg), got ${weightKg.toFixed(2)} kg. Variance: ${variance.toFixed(2)} kg (${variancePercent.toFixed(1)}%).`
+        );
+      }
+    }
+
+    return warnings;
+  };
 
   const onSubmit = async (data: DispatchOrderFormData) => {
     setIsSubmitting(true);
@@ -341,6 +387,24 @@ export function DispatchOrderDialog({ order, children }: DispatchOrderDialogProp
                         )}
                       />
                     </div>
+
+                    {/* Validation Warnings */}
+                    {(() => {
+                      const warnings = getValidationWarnings(index);
+                      return warnings.length > 0 ? (
+                        <Alert variant="default" className="bg-yellow-50 border-yellow-200">
+                          <AlertCircle className="h-4 w-4 text-yellow-600" />
+                          <AlertTitle className="text-yellow-800">Data Quality Warnings</AlertTitle>
+                          <AlertDescription className="text-yellow-700">
+                            <ul className="list-disc list-inside space-y-1 text-sm">
+                              {warnings.map((warning, i) => (
+                                <li key={i}>{warning}</li>
+                              ))}
+                            </ul>
+                          </AlertDescription>
+                        </Alert>
+                      ) : null;
+                    })()}
                   </div>
                 );
               })}

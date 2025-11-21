@@ -40,7 +40,12 @@ async function getOutboundOrder(id: string) {
       items: {
         include: {
           product: {
-            include: {
+            select: {
+              id: true,
+              sku: true,
+              name: true,
+              weightPerUnit: true,
+              unitsPerBox: true,
               inventory: {
                 where: {
                   quantity: { gt: 0 },
@@ -61,6 +66,23 @@ async function getOutboundOrder(id: string) {
       },
     },
   });
+}
+
+// Serialize order for dispatch dialog (includes product metadata for validation)
+function serializeOrderForDispatch(order: NonNullable<Awaited<ReturnType<typeof getOutboundOrder>>>) {
+  return {
+    ...order,
+    items: order.items.map(item => ({
+      ...item,
+      weightKilos: item.weightKilos ? Number(item.weightKilos) : null,
+      unitPrice: item.unitPrice ? Number(item.unitPrice) : null,
+      totalAmount: item.totalAmount ? Number(item.totalAmount) : null,
+      product: {
+        ...item.product,
+        weightPerUnit: item.product.weightPerUnit ? Number(item.product.weightPerUnit) : null,
+      },
+    })),
+  };
 }
 
 // Serialize order for client components (convert Decimal to number)
@@ -190,7 +212,7 @@ export default async function OutboundOrderDetailPage({
             </Button>
           )}
           {canDispatch && (
-            <DispatchOrderDialog order={order}>
+            <DispatchOrderDialog order={serializeOrderForDispatch(order)}>
               <Button>
                 <Truck className="mr-2 h-4 w-4" />
                 Dispatch Order
